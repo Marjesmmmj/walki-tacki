@@ -72,14 +72,21 @@ io.on("connection", (socket) => {
     console.log("📞", caller, "<->", receiver);
 
     // 🔥 INICIAR WEBRTC
-    io.to(caller).emit("create_offer", {
-      target: receiver,
-    });
+ // SOLO EL CALLER CREA OFFER
+io.to(caller).emit("create_offer", {
+  target: receiver,
+});
 
-    io.to(receiver).emit("ready", {
-      target: caller,
-    });
+// EL RECEIVER SOLO ESPERA
+io.to(receiver).emit("waiting_offer", {
+  target: caller,
+});
 
+    console.log("ENVIANDO CREATE OFFER");
+    console.log({
+    caller,
+    receiver
+});
   });
 
   // =========================
