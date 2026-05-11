@@ -90,3 +90,17 @@ server.listen(3000, () => {
   console.log("Servidor corriendo en puerto 3000");
 
 });
+
+let users = [];
+
+io.on("connection", (socket) => {
+
+  users.push(socket.id);
+
+  if (users.length >= 2) {
+
+    io.to(users[1]).emit("create_offer");
+
+  }
+
+});
