@@ -18,7 +18,8 @@ const io = new Server(server, {
 // =========================
 // USUARIOS
 // =========================
-let waitingUser = null;
+//let waitingUser = null;
+let users = [];
 
 // guardar pares activos
 const pairs = new Map();
@@ -31,7 +32,19 @@ io.on("connection", (socket) => {
   // JOIN
   // =========================
   socket.on("join", () => {
-
+    users.push(socket.id);
+    console.log(users);
+    
+    users.forEach(userId => {
+     if (userId !== socket.id) {
+     io.to(userId).emit("new_peer", {
+      target: socket.id
+      });
+       socket.emit("new_peer", {
+       target: userId
+      });
+      }
+      });
     console.log("📡 JOIN:", socket.id);
 
     // evitar duplicados
