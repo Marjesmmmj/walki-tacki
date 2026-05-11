@@ -15,9 +15,13 @@ const io = new Server(server, {
   },
 });
 
+let users = [];
+
 io.on("connection", (socket) => {
 
   console.log("Usuario conectado:", socket.id);
+
+  users.push(socket.id);
 
   // =========================
   // JOIN ROOM
@@ -27,6 +31,13 @@ io.on("connection", (socket) => {
     socket.join(room);
 
     console.log(`${socket.id} se unió a ${room}`);
+
+    // SI HAY 2 USUARIOS -> CREAR OFFER
+    if (users.length >= 2) {
+
+      io.to(users[1]).emit("create_offer");
+
+    }
 
   });
 
@@ -81,6 +92,8 @@ io.on("connection", (socket) => {
 
     console.log("Usuario desconectado:", socket.id);
 
+    users = users.filter((id) => id !== socket.id);
+
   });
 
 });
@@ -88,19 +101,5 @@ io.on("connection", (socket) => {
 server.listen(3000, () => {
 
   console.log("Servidor corriendo en puerto 3000");
-
-});
-
-let users = [];
-
-io.on("connection", (socket) => {
-
-  users.push(socket.id);
-
-  if (users.length >= 2) {
-
-    io.to(users[1]).emit("create_offer");
-
-  }
 
 });
