@@ -77,8 +77,7 @@ io.to(caller).emit("create_offer", {
   target: receiver,
 });
 
-// EL RECEIVER SOLO ESPERA
-io.to(receiver).emit("waiting_offer", {
+io.to(receiver).emit("create_offer", {
   target: caller,
 });
 
