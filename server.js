@@ -12,16 +12,16 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: "*",
+    methods: ["GET", "POST"],
   },
 });
 
-let users = [];
-
+// =========================
+// CONEXIÓN
+// =========================
 io.on("connection", (socket) => {
 
   console.log("Usuario conectado:", socket.id);
-
-  users.push(socket.id);
 
   // =========================
   // JOIN ROOM
@@ -32,10 +32,20 @@ io.on("connection", (socket) => {
 
     console.log(`${socket.id} se unió a ${room}`);
 
-    // SI HAY 2 USUARIOS -> CREAR OFFER
-    if (users.length >= 2) {
+    // usuarios dentro de la sala
+    const roomUsers = Array.from(
+      io.sockets.adapter.rooms.get(room) || []
+    );
 
-      io.to(users[1]).emit("create_offer");
+    console.log("Usuarios en sala:", roomUsers.length);
+
+    // si hay 2 o más -> crear offer
+    if (roomUsers.length >= 2) {
+
+      // el último que entró crea la oferta
+      io.to(socket.id).emit("create_offer");
+
+      console.log("CREATE OFFER ENVIADO");
 
     }
 
@@ -48,6 +58,7 @@ io.on("connection", (socket) => {
 
     console.log("OFFER");
 
+    // enviar a todos menos al emisor
     socket.broadcast.emit("offer", data);
 
   });
@@ -79,8 +90,6 @@ io.on("connection", (socket) => {
   // =========================
   socket.on("ping_server", () => {
 
-    console.log("PING");
-
     socket.emit("pong");
 
   });
@@ -92,13 +101,14 @@ io.on("connection", (socket) => {
 
     console.log("Usuario desconectado:", socket.id);
 
-    users = users.filter((id) => id !== socket.id);
-
   });
 
 });
 
-server.listen(3000, () => {
+// =========================
+// START SERVER
+// =========================
+server.listen(3000, "0.0.0.0", () => {
 
   console.log("Servidor corriendo en puerto 3000");
 
