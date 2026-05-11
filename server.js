@@ -73,13 +73,15 @@ io.on("connection", (socket) => {
 
     // 🔥 INICIAR WEBRTC
  // SOLO EL CALLER CREA OFFER
-io.to(caller).emit("create_offer", {
-  target: receiver,
-});
+// SOLO EL CALLER CREA OFFER
+    io.to(caller).emit("create_offer", {
+    target: receiver,
+    });
 
-io.to(receiver).emit("create_offer", {
-  target: caller,
-});
+// EL RECEIVER SOLO ESPERA
+    io.to(receiver).emit("waiting_offer", {
+    target: caller,
+    });
 
     console.log("ENVIANDO CREATE OFFER");
     console.log({
