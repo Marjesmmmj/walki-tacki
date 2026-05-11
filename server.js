@@ -29,10 +29,10 @@ io.on("connection", (socket) => {
   });
 
   // 🔥 AUDIO
-  socket.on("audio", (data) => {
+  socket.on("voice_chunk", (data) => {
 
     // enviar audio a todos menos al emisor
-    socket.broadcast.emit("audio", data);
+    socket.broadcast.emit("voice_chunk", data);
 
   });
 
