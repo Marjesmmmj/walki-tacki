@@ -19,7 +19,9 @@ io.on("connection", (socket) => {
 
   console.log("Usuario conectado:", socket.id);
 
-  // 🔥 unirse a canal
+  // =========================
+  // JOIN ROOM
+  // =========================
   socket.on("join", (room) => {
 
     socket.join(room);
@@ -28,30 +30,60 @@ io.on("connection", (socket) => {
 
   });
 
-  // 🔥 AUDIO
-  socket.on("voice_chunk", (data) => {
+  // =========================
+  // OFFER
+  // =========================
+  socket.on("offer", (data) => {
 
-    // enviar audio a todos menos al emisor
-    socket.broadcast.emit("voice_chunk", data);
+    console.log("OFFER");
+
+    socket.broadcast.emit("offer", data);
 
   });
 
-  // 🔥 desconexión
+  // =========================
+  // ANSWER
+  // =========================
+  socket.on("answer", (data) => {
+
+    console.log("ANSWER");
+
+    socket.broadcast.emit("answer", data);
+
+  });
+
+  // =========================
+  // ICE CANDIDATE
+  // =========================
+  socket.on("candidate", (data) => {
+
+    console.log("CANDIDATE");
+
+    socket.broadcast.emit("candidate", data);
+
+  });
+
+  // =========================
+  // PING
+  // =========================
+  socket.on("ping_server", () => {
+
+    console.log("PING");
+
+    socket.emit("pong");
+
+  });
+
+  // =========================
+  // DISCONNECT
+  // =========================
   socket.on("disconnect", () => {
 
     console.log("Usuario desconectado:", socket.id);
 
   });
 
-  socket.on("ping_server", () => {
-
-  console.log("PING");
-
-  socket.emit("pong");
-
 });
-});
-
 
 server.listen(3000, () => {
 
