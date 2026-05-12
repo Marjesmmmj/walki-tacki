@@ -20,6 +20,7 @@ const io = new Server(server, {
 // =========================
 let users = [];
 
+
 io.on("connection", (socket) => {
 
   console.log("🔌 Conectado:", socket.id);
