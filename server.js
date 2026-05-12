@@ -32,7 +32,9 @@ io.on("connection", (socket) => {
   // JOIN
   // =========================
   socket.on("join", () => {
+    
     users.push(socket.id);
+    
     console.log(users);
     
     users.forEach(userId => {
@@ -47,6 +49,14 @@ io.on("connection", (socket) => {
       });
     console.log("📡 JOIN:", socket.id);
 
+   // avisar a todos menos al nuevo
+   socket.broadcast.emit("new-user", {
+      id: socket.id
+   });
+
+      // enviar lista de usuarios existentes
+   socket.emit("users-list", users.filter(id => id !== socket.id));
+    
     // evitar duplicados
     if (waitingUser === socket.id) {
       return;
