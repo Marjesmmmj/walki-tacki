@@ -193,6 +193,6 @@ io.on("connection", (socket) => {
 
 server.listen(3000, "0.0.0.0", () => {
 
-  console.log("🚀 WALKIE SERVER RUNNING ON PORT 3000");
+  console.log("🚀 WALKIE SERVER RUNNING ON PORT ------------>3000");
 
 });
