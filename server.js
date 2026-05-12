@@ -16,13 +16,9 @@ const io = new Server(server, {
 });
 
 // =========================
-// USUARIOS
+// USUARIOS CONECTADOS
 // =========================
-//let waitingUser = null;
 let users = [];
-
-// guardar pares activos
-const pairs = new Map();
 
 io.on("connection", (socket) => {
 
@@ -32,85 +28,38 @@ io.on("connection", (socket) => {
   // JOIN
   // =========================
   socket.on("join", () => {
-    
-    users.push(socket.id);
-    
-    console.log(users);
-    
-    users.forEach(userId => {
-     if (userId !== socket.id) {
-     io.to(userId).emit("new_peer", {
-      target: socket.id
-      });
-       socket.emit("new_peer", {
-       target: userId
-      });
-      }
-      });
+
     console.log("📡 JOIN:", socket.id);
 
-   // avisar a todos menos al nuevo
-   socket.broadcast.emit("new-user", {
-      id: socket.id
-   });
-
-      // enviar lista de usuarios existentes
-   socket.emit("users-list", users.filter(id => id !== socket.id));
-    
     // evitar duplicados
-    if (waitingUser === socket.id) {
-      return;
+    if (!users.includes(socket.id)) {
+      users.push(socket.id);
     }
 
-    // si no hay nadie esperando
-    if (!waitingUser) {
-
-      waitingUser = socket.id;
-
-      console.log("⏳ Esperando pareja:", socket.id);
-
-      socket.emit("waiting");
-
-      return;
-    }
-
-    // evitar emparejar consigo mismo
-    if (waitingUser === socket.id) {
-      return;
-    }
+    console.log("👥 USERS:", users);
 
     // =========================
-    // EMPAREJAR
+    // AVISAR USUARIOS EXISTENTES
     // =========================
-    const caller = waitingUser;
-    const receiver = socket.id;
+    users.forEach((userId) => {
 
-    waitingUser = null;
+      if (userId !== socket.id) {
 
-    // guardar relación
-    pairs.set(caller, receiver);
-    pairs.set(receiver, caller);
+        // avisar a usuarios viejos del nuevo
+        io.to(userId).emit("new_peer", {
+          target: socket.id,
+        });
 
-    console.log("🎧 PAREJA CREADA");
-    console.log("📞", caller, "<->", receiver);
+        // avisar al nuevo de usuarios existentes
+        socket.emit("new_peer", {
+          target: userId,
+        });
 
-    // 🔥 INICIAR WEBRTC
- // SOLO EL CALLER CREA OFFER
-// SOLO EL CALLER CREA OFFER
-    io.to(caller).emit("create_offer", {
-    target: receiver,
+        console.log("🤝 NUEVO PEER:", socket.id, "<->", userId);
+      }
+
     });
 
-// EL RECEIVER SOLO ESPERA
-    io.to(receiver).emit("waiting_offer", {
-    target: caller,
-    });
-
-    console.log("ENVIANDO CREATE OFFER");
-    console.log({
-    caller,
-    receiver
-});
   });
 
   // =========================
@@ -227,24 +176,15 @@ io.on("connection", (socket) => {
 
     console.log("❌ Desconectado:", socket.id);
 
-    // quitar waiting
-    if (waitingUser === socket.id) {
-      waitingUser = null;
-    }
+    // eliminar usuario
+    users = users.filter(id => id !== socket.id);
 
-    // avisar al compañero
-    const partner = pairs.get(socket.id);
+    console.log("👥 USERS:", users);
 
-    if (partner) {
-
-      io.to(partner).emit("peer_disconnected");
-
-      pairs.delete(partner);
-      pairs.delete(socket.id);
-
-      console.log("💔 PAREJA ELIMINADA");
-
-    }
+    // avisar a todos
+    socket.broadcast.emit("peer_disconnected", {
+      id: socket.id,
+    });
 
   });
 
