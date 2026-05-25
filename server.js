@@ -20,7 +20,6 @@ const io = new Server(server, {
 // =========================
 let users = [];
 
-
 io.on("connection", (socket) => {
 
   console.log("🔌 Conectado:", socket.id);
@@ -28,38 +27,68 @@ io.on("connection", (socket) => {
   // =========================
   // JOIN
   // =========================
-  socket.on("join", () => {
+  socket.on("join", (data) => {
 
-    console.log("📡 JOIN:", socket.id);
+    try {
 
-    // evitar duplicados
-    if (!users.includes(socket.id)) {
-      users.push(socket.id);
-    }
+      console.log("📡 JOIN:", socket.id);
 
-    console.log("👥 USERS:", users);
+      const alias = data?.alias || "Anonimo";
 
-    // =========================
-    // AVISAR USUARIOS EXISTENTES
-    // =========================
-    users.forEach((userId) => {
+      // evitar duplicados
+      const exists = users.find(
+        (u) => u.id === socket.id
+      );
 
-      if (userId !== socket.id) {
+      if (!exists) {
 
-        // avisar a usuarios viejos del nuevo
-        io.to(userId).emit("new_peer", {
-          target: socket.id,
+        users.push({
+          id: socket.id,
+          alias: alias,
         });
 
-        // avisar al nuevo de usuarios existentes
-        socket.emit("new_peer", {
-          target: userId,
-        });
-
-        console.log("🤝 NUEVO PEER:", socket.id, "<->", userId);
       }
 
-    });
+      console.log("👥 USERS:", users);
+
+      // ENVIAR LISTA A TODOS
+      io.emit("users_list", users);
+
+      // =========================
+      // AVISAR USUARIOS EXISTENTES
+      // =========================
+      users.forEach((user) => {
+
+        if (user.id !== socket.id) {
+
+          // avisar usuarios viejos
+          io.to(user.id).emit("new_peer", {
+            target: socket.id,
+            alias: alias,
+          });
+
+          // avisar nuevo usuario
+          socket.emit("new_peer", {
+            target: user.id,
+            alias: user.alias,
+          });
+
+          console.log(
+            "🤝 NUEVO PEER:",
+            socket.id,
+            "<->",
+            user.id
+          );
+
+        }
+
+      });
+
+    } catch (e) {
+
+      console.log("❌ ERROR JOIN:", e);
+
+    }
 
   });
 
@@ -178,9 +207,14 @@ io.on("connection", (socket) => {
     console.log("❌ Desconectado:", socket.id);
 
     // eliminar usuario
-    users = users.filter(id => id !== socket.id);
+    users = users.filter(
+      user => user.id !== socket.id
+    );
 
     console.log("👥 USERS:", users);
+
+    // reenviar lista actualizada
+    io.emit("users_list", users);
 
     // avisar a todos
     socket.broadcast.emit("peer_disconnected", {
@@ -193,6 +227,6 @@ io.on("connection", (socket) => {
 
 server.listen(3000, "0.0.0.0", () => {
 
-  console.log("🚀 WALKIE SERVER RUNNING ON PORT ------------>3000");
+  console.log("🚀 WALKIE SERVER ALIAS ------------>3000");
 
 });
