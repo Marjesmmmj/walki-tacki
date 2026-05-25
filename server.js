@@ -215,7 +215,7 @@ socket.on("talking", (data) => {
   // =========================
   socket.on("disconnect", () => {
 
-    console.log("❌ Desconectado:", socket.id,data.alias);
+    console.log("❌ Desconectado:", socket.id);
 
     // eliminar usuario
     users = users.filter(
