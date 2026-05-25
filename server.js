@@ -198,13 +198,24 @@ io.on("connection", (socket) => {
     socket.emit("pong_server");
 
   });
+// =========================
+// TALKING
+// =========================
+socket.on("talking", (data) => {
 
+  socket.broadcast.emit("user_talking", {
+    id: socket.id,
+    alias: data.alias,
+    talking: data.talking,
+  });
+
+});
   // =========================
   // DISCONNECT
   // =========================
   socket.on("disconnect", () => {
 
-    console.log("❌ Desconectado:", socket.id);
+    console.log("❌ Desconectado:", socket.id,data.alias);
 
     // eliminar usuario
     users = users.filter(
